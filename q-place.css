@@ -1,0 +1,12 @@
+body {
+	background-color: #070d19;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+td {
+	width: 5px;
+	height: 5px;
+}
