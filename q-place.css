@@ -1,5 +1,10 @@
 body {
 	background-color: #070d19;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	margin: 0;
 }
 
 table {
@@ -9,4 +14,10 @@ table {
 td {
 	width: 5px;
 	height: 5px;
+}
+
+#pixel-art {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }

@@ -54,7 +54,8 @@ function colorPixels() {
         const pixelX = parseInt(pixel.slice(0, 2), 10); // Extract two characters
         const pixelY = parseInt(pixel.slice(2, 4), 10); // Extract two characters
         const pixelRGB = pixel.slice(4, 10); // Extract six characters
-        let pixelCell = document.getElementById(`${pixelX}-${pixelY}`);
+        const cellId = `${pixelX.toString().padStart(2, '0')}-${pixelY.toString().padStart(2, '0')}`;
+        let pixelCell = document.getElementById(cellId);
         if (pixelCell) {
             pixelCell.style.backgroundColor = `#${pixelRGB}`;
         }
