@@ -20,6 +20,12 @@ td {
 	height: 5px;
 }
 
+img {
+	width: 24px;
+	height: 24px;
+	vertical-align: middle;
+}
+
 #pixel-art {
 	display: flex;
 	justify-content: center;
