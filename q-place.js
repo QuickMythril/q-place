@@ -8,6 +8,7 @@ let pixels = [
     "47500082ca", "4850ffffff", "4950ffffff", "5050ffffff", "5150ffa6d1",
     "47510600ee", "4851e23eff", "4951820281", "5051ffffff", "5151e80000"
 ];
+let selectedPixelData = null;
 let userPublicKey = '';
 let userAddress = '';
 let userName = '';
@@ -40,7 +41,7 @@ function createGrid() {
         for (let x = 0; x < gridSize; x++) {
             let cell = document.createElement('td');
             cell.setAttribute('id', `${x}-${y}`);
-            cell.style.backgroundColor = "DodgerBlue";
+            cell.style.backgroundColor = "#1e90ff"; // DodgerBlue
             cell.addEventListener('click', handlePixelClick);
             newRow.appendChild(cell);
         }
@@ -82,31 +83,50 @@ async function accountLogin() {
 }
 
 async function handlePixelClick(event) {
-    if (!userName || userName === 'Name unavailable') {
-        await accountLogin();
-        if (!userName || userName === 'Name unavailable') {
-            console.error('Username is still unavailable');
-            return;
-        }
-    }
     const cell = event.target;
     const [x, y] = cell.id.split('-');
-    const colorPicker = document.createElement('input');
-    colorPicker.type = 'color';
-    colorPicker.addEventListener('change', async (event) => {
-        const color = event.target.value;
+    updateTopBar(x, y, cell.style.backgroundColor);
+    const colorPicker = document.getElementById('color-picker');
+    selectedPixelData = `${x.padStart(2, '0')}${y.padStart(2, '0')}`;
+    const publishButton = document.getElementById('publish-button');
+    publishButton.removeEventListener('click', publishSelectedPixel);
+    publishButton.addEventListener('click', publishSelectedPixel);
+}
+
+function updateTopBar(x, y, color) {
+    document.getElementById('coordinates').textContent = `${x}, ${y}`;
+    document.getElementById('current-color').textContent = `${color}`;
+    document.getElementById('color-picker').value = rgbToHex(color);
+}
+
+function rgbToHex(rgbColor) {
+    const rgbValues = rgbColor.match(/\d+/g);
+    const hexValues = rgbValues.map(value => parseInt(value).toString(16).padStart(2, '0'));
+    return `#${hexValues.join('')}`;
+}
+
+async function publishSelectedPixel() {
+    if (selectedPixelData) {
+        const colorPicker = document.getElementById('color-picker');
+        const color = colorPicker.value;
         const rgbColor = color.substring(1);
-        const pixelData = `${x.padStart(2, '0')}${y.padStart(2, '0')}${rgbColor}`;
-        cell.style.backgroundColor = color;
-        colorPicker.remove();
+        const pixelData = selectedPixelData + rgbColor;
         await publishPixel(pixelData);
-    });
-    cell.appendChild(colorPicker);
-    colorPicker.click();
+        const [x, y] = selectedPixelData.match(/.{1,2}/g);
+        const cell = document.getElementById(`${x}-${y}`);
+        cell.style.backgroundColor = color;
+    }
 }
 
 async function publishPixel(pixelData) {
     try {
+        if (!userName || userName === 'Name unavailable') {
+            await accountLogin();
+            if (!userName || userName === 'Name unavailable') {
+                console.error('Username is still unavailable');
+                return;
+            }
+        }
         const pixelIdentifier = 'qplace-pixel-' + pixelData;
         const emptyFile = new Blob([], { type: 'application/octet-stream' });
         const response = await qortalRequest({
