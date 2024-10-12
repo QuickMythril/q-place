@@ -1,32 +1,38 @@
 document.addEventListener('DOMContentLoaded', fetchPixels);
+document.getElementById('replay-button').addEventListener('click', () => {
+    document.getElementById('replay-button').disabled = true;
+    resetGrid();
+    playPixels();
+});
 
 const gridSize = 100;
+let pixelHistory = [];
 let pixels = {
-    "47-47": { color: "#ffffff", user: "", time: null },
-    "48-47": { color: "#e6db00", user: "", time: null },
-    "49-47": { color: "#a16a3f", user: "", time: null },
-    "50-47": { color: "#e79700", user: "", time: null },
-    "51-47": { color: "#92e233", user: "", time: null },
-    "47-48": { color: "#00c000", user: "", time: null },
-    "48-48": { color: "#ffffff", user: "", time: null },
-    "49-48": { color: "#ffffff", user: "", time: null },
-    "50-48": { color: "#ffffff", user: "", time: null },
-    "51-48": { color: "#888789", user: "", time: null },
-    "47-49": { color: "#01e5f2", user: "", time: null },
-    "48-49": { color: "#ffffff", user: "", time: null },
-    "49-49": { color: "#000000", user: "", time: null },
-    "50-49": { color: "#ffffff", user: "", time: null },
-    "51-49": { color: "#e4e4e4", user: "", time: null },
-    "47-50": { color: "#0082ca", user: "", time: null },
-    "48-50": { color: "#ffffff", user: "", time: null },
-    "49-50": { color: "#ffffff", user: "", time: null },
-    "50-50": { color: "#ffffff", user: "", time: null },
-    "51-50": { color: "#ffa6d1", user: "", time: null },
-    "47-51": { color: "#0600ee", user: "", time: null },
-    "48-51": { color: "#e23eff", user: "", time: null },
-    "49-51": { color: "#820281", user: "", time: null },
-    "50-51": { color: "#ffffff", user: "", time: null },
-    "51-51": { color: "#e80000", user: "", time: null }
+    "47-47": { color: "#ffffff", user: "", time: 17 },
+    "48-47": { color: "#e6db00", user: "", time: 18 },
+    "49-47": { color: "#a16a3f", user: "", time: 19 },
+    "50-47": { color: "#e79700", user: "", time: 20 },
+    "51-47": { color: "#92e233", user: "", time: 21 },
+    "47-48": { color: "#00c000", user: "", time: 16 },
+    "48-48": { color: "#ffffff", user: "", time: 5 },
+    "49-48": { color: "#ffffff", user: "", time: 6 },
+    "50-48": { color: "#ffffff", user: "", time: 7 },
+    "51-48": { color: "#888789", user: "", time: 22 },
+    "47-49": { color: "#01e5f2", user: "", time: 15 },
+    "48-49": { color: "#ffffff", user: "", time: 4 },
+    "49-49": { color: "#000000", user: "", time: 1 },
+    "50-49": { color: "#ffffff", user: "", time: 8 },
+    "51-49": { color: "#e4e4e4", user: "", time: 23 },
+    "47-50": { color: "#0082ca", user: "", time: 14 },
+    "48-50": { color: "#ffffff", user: "", time: 3 },
+    "49-50": { color: "#ffffff", user: "", time: 2 },
+    "50-50": { color: "#ffffff", user: "", time: 9 },
+    "51-50": { color: "#ffa6d1", user: "", time: 24 },
+    "47-51": { color: "#0600ee", user: "", time: 13 },
+    "48-51": { color: "#e23eff", user: "", time: 12 },
+    "49-51": { color: "#820281", user: "", time: 11 },
+    "50-51": { color: "#ffffff", user: "", time: 10 },
+    "51-51": { color: "#e80000", user: "", time: 25 }
 };
 let selectedPixelData = null;
 let userPublicKey = '';
@@ -34,6 +40,14 @@ let userAddress = '';
 let userName = '';
 
 async function fetchPixels() {
+    for (const [coords, pixelData] of Object.entries(pixels)) {
+        pixelHistory.push({
+            coords: coords,
+            color: pixelData.color,
+            user: pixelData.user,
+            time: pixelData.time || 0
+        });
+    }
     try {
         const response = await fetch(`/arbitrary/resources/search?identifier=qplace-pixel-&mode=ALL&service=CHAIN_DATA`);
         if (!response.ok) {
@@ -41,23 +55,26 @@ async function fetchPixels() {
         }
         const results = await response.json();
         if (results.length > 0) {
-            results.sort((a, b) => (a.updated || a.created) - (b.updated || b.created));
+            results.sort((a, b) => new Date(a.updated || a.created) - new Date(b.updated || b.created));
             results.forEach(result => {
                 const pixelData = result.identifier.slice(13, 23);
                 const [x, y] = [pixelData.slice(0, 2), pixelData.slice(2, 4)];
                 const color = `#${pixelData.slice(4, 10)}`;
-                pixels[`${x}-${y}`] = {
-                    color,
+                const coords = `${x}-${y}`;
+                pixelHistory.push({
+                    coords: coords,
+                    color: color,
                     user: result.name,
-                    time: result.created
-                };
+                    time: new Date(result.updated || result.created).getTime()
+                });
             });
         }
     } catch (error) {
         console.error('Error fetching pixels', error);
     }
+    pixelHistory.sort((a, b) => a.time - b.time);
     createGrid();
-    colorPixels();
+    playPixels();
 }
 
 function createGrid() {
@@ -85,6 +102,42 @@ function colorPixels() {
     }
 }
 
+function playPixels() {
+    let index = 0;
+    const totalPixels = pixelHistory.length;
+    const delay = 0;
+    function displayNextPixel() {
+        if (index < totalPixels) {
+            const pixelData = pixelHistory[index];
+            const pixelCell = document.getElementById(pixelData.coords);
+            if (pixelCell) {
+                pixelCell.style.backgroundColor = pixelData.color;
+            }
+            pixels[pixelData.coords] = {
+                color: pixelData.color,
+                user: pixelData.user,
+                time: pixelData.time
+            };
+            index++;
+            setTimeout(displayNextPixel, delay);
+        } else {
+            const replayButton = document.getElementById('replay-button');
+            if (replayButton) {
+                replayButton.disabled = false;
+            }
+        }
+    }
+    displayNextPixel();
+}
+
+function resetGrid() {
+    const cells = document.querySelectorAll('#pixel-art td');
+    cells.forEach(cell => {
+        cell.style.backgroundColor = "#1e90ff";
+    });
+    pixels = {};
+}
+
 async function accountLogin() {
     try {
         const account = await qortalRequest({
@@ -105,12 +158,12 @@ async function accountLogin() {
     }
 }
 
-async function handlePixelClick(event) {
+function handlePixelClick(event) {
     const cell = event.target;
     const coords = cell.id;
     const [x, y] = coords.split('-').map(coord => coord.padStart(2, '0'));
-    updateTopBar(x, y, pixels[coords]?.color || '#1e90ff', pixels[coords]?.user, pixels[coords]?.time);
-    const colorPicker = document.getElementById('color-picker');
+    const pixelData = pixels[coords] || { color: '#1e90ff', user: null, time: null };
+    updateTopBar(x, y, pixelData.color, pixelData.user, pixelData.time);
     selectedPixelData = `${x}-${y}`;
     const publishButton = document.getElementById('publish-button');
     publishButton.removeEventListener('click', publishSelectedPixel);
@@ -164,7 +217,7 @@ async function publishPixel(pixelData) {
 
 function formatTimeAgo(timestamp) {
     const currentTimestamp = Date.now();
-    timeAgo = currentTimestamp - timestamp;
+    let timeAgo = currentTimestamp - timestamp;
     if (timeAgo < 0) {
         return "pending";
     }
