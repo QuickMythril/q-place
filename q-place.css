@@ -4,20 +4,20 @@
 
 body {
 	background-color: #070d19;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	min-height: 100vh;
 	margin: 0;
 }
 
-table {
+table, tr, td {
+	margin: 0;
+	padding: 0;
+	border: none;
 	border-collapse: collapse;
 }
 
 td {
-	width: 5px;
-	height: 5px;
+	width: 1%;
+	height: 1%;
+	box-sizing: border-box;
 }
 
 img {
@@ -27,26 +27,76 @@ img {
 }
 
 #pixel-art {
-	display: flex;
-	justify-content: center;
-	align-items: center;
+	position: relative;
+	margin: 0 auto; /* Center the pixel-art */
+	/* Width and height will be set dynamically via JavaScript */
+}
+
+#pixel-art table {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border-collapse: collapse;
 }
 
 #top-bar {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px;
 	background-color: #1c2331;
 	color: DodgerBlue;
 	font-family: Lexend;
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 1;
+	/* Remove position: fixed */
 }
 
+#slider-bar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+	background-color: #1c2331;
+	/* Remove position: fixed */
+}
+
+/* Styles for the labels */
 #top-bar span {
 	margin-right: 10px;
+	color: DodgerBlue;
+}
+
+#top-bar input[type="color"] {
+	margin-left: 10px;
+}
+
+#top-bar button {
+	margin-left: 10px;
+}
+
+#slider-bar input[type="range"] {
+	width: 95%;
+	margin: 0;
+}
+
+@media (max-width: 600px) {
+	#top-bar, #slider-bar {
+		padding: 5px;
+	}
+
+	#top-bar span {
+		font-size: 12px;
+		margin-right: 5px;
+	}
+
+	#top-bar button, #top-bar input[type="color"] {
+		margin-left: 5px;
+		font-size: 12px;
+	}
+
+	#slider-bar input[type="range"] {
+		width: 100%;
+	}
 }

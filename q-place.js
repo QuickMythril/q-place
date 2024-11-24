@@ -1,9 +1,41 @@
-document.addEventListener('DOMContentLoaded', fetchPixels);
-document.getElementById('replay-button').addEventListener('click', () => {
-    document.getElementById('replay-button').disabled = true;
-    resetGrid();
-    playPixels();
+function resizePixelArt() {
+    const topBarHeight = document.getElementById('top-bar').offsetHeight;
+    const sliderBarHeight = document.getElementById('slider-bar').offsetHeight;
+    const totalOtherHeights = topBarHeight + sliderBarHeight;
+    const availableHeight = window.innerHeight - totalOtherHeights;
+    const availableWidth = window.innerWidth;
+    const size = Math.min(availableWidth, availableHeight);
+    const pixelArt = document.getElementById('pixel-art');
+    pixelArt.style.width = size + 'px';
+    pixelArt.style.height = size + 'px';
+}
+
+window.addEventListener('resize', resizePixelArt);
+window.addEventListener('load', () => {
+    fetchPixels();
+    resizePixelArt();
+    // If you have any other initialization code, place it here
 });
+
+const replayButton = document.getElementById('replay-button');
+const historySlider = document.getElementById('history-slider');
+let isReplaying = true; // Track replay state
+replayButton.textContent = 'Skip';
+
+replayButton.addEventListener('click', () => {
+    if (!isReplaying) {
+        isReplaying = true;
+        replayButton.textContent = 'Skip';
+        resetGrid();
+        playPixels();
+    } else {
+        isReplaying = false;
+        replayButton.textContent = 'Replay';
+        skipToEnd();
+    }
+});
+
+historySlider.addEventListener('input', handleSliderChange);
 
 const gridSize = 100;
 let pixelHistory = [];
@@ -39,6 +71,7 @@ let userPublicKey = '';
 let userAddress = '';
 let userName = '';
 
+// Fetch pixels and initialize slider
 async function fetchPixels() {
     for (const [coords, pixelData] of Object.entries(pixels)) {
         pixelHistory.push({
@@ -73,6 +106,10 @@ async function fetchPixels() {
         console.error('Error fetching pixels', error);
     }
     pixelHistory.sort((a, b) => a.time - b.time);
+
+    // After fetching and sorting pixelHistory
+    historySlider.max = pixelHistory.length;
+    historySlider.value = pixelHistory.length;
     createGrid();
     playPixels();
 }
@@ -105,8 +142,12 @@ function colorPixels() {
 function playPixels() {
     let index = 0;
     const totalPixels = pixelHistory.length;
-    const delay = 0;
+    const delay = 0; // Adjust delay as needed
+
     function displayNextPixel() {
+        if (!isReplaying) {
+            return; // Exit if replay is skipped
+        }
         if (index < totalPixels) {
             const pixelData = pixelHistory[index];
             const pixelCell = document.getElementById(pixelData.coords);
@@ -119,15 +160,55 @@ function playPixels() {
                 time: pixelData.time
             };
             index++;
+            historySlider.value = index; // Update slider position
             setTimeout(displayNextPixel, delay);
         } else {
-            const replayButton = document.getElementById('replay-button');
-            if (replayButton) {
-                replayButton.disabled = false;
-            }
+            isReplaying = false;
+            replayButton.textContent = 'Replay';
         }
     }
     displayNextPixel();
+}
+
+function skipToEnd() {
+    isReplaying = false;
+    replayButton.textContent = 'Replay';
+    for (let i = 0; i < pixelHistory.length; i++) {
+        const pixelData = pixelHistory[i];
+        const pixelCell = document.getElementById(pixelData.coords);
+        if (pixelCell) {
+            pixelCell.style.backgroundColor = pixelData.color;
+        }
+        pixels[pixelData.coords] = {
+            color: pixelData.color,
+            user: pixelData.user,
+            time: pixelData.time
+        };
+    }
+    historySlider.value = pixelHistory.length;
+}
+
+function handleSliderChange(event) {
+    isReplaying = false;
+    replayButton.textContent = 'Replay';
+    const index = parseInt(event.target.value, 10);
+    updateGridToIndex(index);
+}
+
+function updateGridToIndex(index) {
+    resetGrid();
+    for (let i = 0; i < index; i++) {
+        const pixelData = pixelHistory[i];
+        const pixelCell = document.getElementById(pixelData.coords);
+        if (pixelCell) {
+            pixelCell.style.backgroundColor = pixelData.color;
+        }
+        pixels[pixelData.coords] = {
+            color: pixelData.color,
+            user: pixelData.user,
+            time: pixelData.time
+        };
+    }
 }
 
 function resetGrid() {
@@ -136,6 +217,7 @@ function resetGrid() {
         cell.style.backgroundColor = "#1e90ff";
     });
     pixels = {};
+    historySlider.value = 0; // Reset slider
 }
 
 async function accountLogin() {

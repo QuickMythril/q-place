@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>q-place</title>
-		<link rel="stylesheet" href="q-place.css">
-		<link rel="icon" type="image/png" href="favicon.png">
-	</head>
-	<body>
-		<div id="top-bar">
-			<span id="version">v0.3.0</span>
-			<span id="coordinates">X, Y</span>
-			<span id="current-color">#RRGGBB</span>
-			<span id="last-user">NAME</span>
-			<span id="timestamp">TIME</span>
-			<input type="color" id="color-picker">
-			<button id="publish-button">Publish</button>
-			<button id="replay-button" disabled>Replay</button>
-		</div>
-		<div id="pixel-art"></div>
-		<script src="q-place.js"></script>
-	</body>
+<head>
+    <meta charset="UTF-8">
+    <title>q-place</title>
+    <link rel="stylesheet" href="q-place.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <div id="top-bar">
+        <span id="version">v0.4.0</span>
+        <span id="coordinates-label">Coordinates: <span id="coordinates">X, Y</span></span>
+        <span id="color-label">Color: <span id="current-color">#RRGGBB</span></span>
+        <span id="user-label">Last User: <span id="last-user">NAME</span></span>
+        <span id="timestamp-label">Timestamp: <span id="timestamp">TIME</span></span>
+        <input type="color" id="color-picker">
+        <button id="publish-button">Publish</button>
+        <button id="replay-button">Replay</button>
+    </div>
+    <div id="slider-bar">
+        <!-- Added History Slider -->
+        <input type="range" id="history-slider" min="0" max="0" value="0" step="1" style="width: 100%;">
+    </div>
+    <div id="pixel-art"></div>
+    <script src="q-place.js"></script>
+</body>
 </html>
